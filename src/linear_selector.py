@@ -34,7 +34,7 @@ class LinearSelector(selector.Selector):
         # 先复制一份，避免用户传入的数组被改动
         A = np.copy(A)
 
-        num_of_groups = length//5 + 1
+        num_of_groups = int(np.ceil(length/5))
         logging.debug(f'分为 {num_of_groups} 组')
 
         # 如果 length = 11, 应该分为 3 组：0, 1, 2
