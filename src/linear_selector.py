@@ -1,7 +1,6 @@
 import selector
 import numpy as np
 import logging
-from round_trip import *
 
 class LinearSelector(selector.Selector):
     def partition(self, A, x):
@@ -15,7 +14,7 @@ class LinearSelector(selector.Selector):
             if A[j] < pivot:
                 i += 1
                 A[i], A[j] = A[j], A[i]
-                logging.debug(f'Swaping A[{i}] & A[{j}]')
+                # logging.debug(f'Swaping A[{i}] & A[{j}]')
         return i+1
 
     def min(self, A, k):
@@ -80,19 +79,3 @@ class LinearSelector(selector.Selector):
             # 在 A[l+1] - A[n-1] 中继续找
             logging.debug(f'{l} < {k}，继续寻找 {A[l+1:length]} 中第 {k-l-1} 小的元素')
             return self.min(A[l+1:length], k - l - 1)
-
-
-if __name__ == "__main__":
-    linearSelector = LinearSelector()
-    # # A = np.array([4, 7, 2, 10, 3, 3])
-    # A = np.array([7, 3, 2, 10, 3, 4])
-
-    # # 测试 partition 算法的正确性
-    # res = linearSelector.partition(A, 7)
-    # print(res)
-    # print(A)
-
-    # 测试 min 算法的正确性
-    # x = linearSelector.min(A, 2)
-    # logging.debug(x)
-    # round_trip('linear')

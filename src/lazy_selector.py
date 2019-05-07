@@ -1,7 +1,6 @@
 import selector
 import numpy as np
 import logging
-from round_trip import *
 
 class LazySelector(selector.Selector):
     def partition(self, A, x):
@@ -49,13 +48,3 @@ class LazySelector(selector.Selector):
                 P = np.sort(P)
                 logging.debug(f'排序后 P = {P}')
                 return P[k-L_p]
-
-if __name__ == "__main__":
-    # linearSelector = LazySelector()
-    # # A = np.array([4, 7, 2, 10, 3, 3])
-    # A = np.array([7, 3, 2, 10, 3, 4])
-
-    # 测试 min 算法的正确性
-    # x = linearSelector.min(A, 2)
-    # logging.debug(x)
-    round_trip('lazy')

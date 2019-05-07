@@ -3,13 +3,15 @@
 Author: Li Yiming
 
 - Sort select: O(n log n)
-- Linear select: 1.5n - 5.43n
+- Linear select: 1.5n ~ 5.43n
 - Lazy select: 2n + o(n)
 
-Run test cases and see the logs:
+See my [report](report.md) (in Chinese) for more technical information.
 
-```py
-python test\test.py
+Run test cases and see the logs under `log` folder (you have to manually create it if not exist):
+
+```bash
+python test/test.py
 ```
 
 The log file with `WARNING` is a simple version of log, and `DEBUG` is a more verbose version of log.
@@ -31,4 +33,4 @@ min([ 4  7  2 10  3  3], 5) = 10
 Time used: 0.0seconds
 ```
 
-But the `lazy-DEBUG.log` file contains all the steps taken inside the algorithm, it will be useful for you to understand the algorithm quickly.
+But the `lazy-DEBUG.log` file contains all the steps taken during the algorithm, it will be useful for you to understand the algorithm quickly.
