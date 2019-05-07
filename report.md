@@ -32,6 +32,11 @@ html,body {
       - [LINEAR-SELECT](#linear-select-1)
       - [LAZY-SELECT](#lazy-select-1)
     - [性能测试](#%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-1)
+    - [算法优化](#%E7%AE%97%E6%B3%95%E4%BC%98%E5%8C%96)
+      - [LINEAR-SELECT 优化](#linear-select-%E4%BC%98%E5%8C%96)
+    - [性能测试（优化之后）](#%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E4%BC%98%E5%8C%96%E4%B9%8B%E5%90%8E)
+  - [四、对实验结果的理解和分析](#%E5%9B%9B%E5%AF%B9%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%E7%9A%84%E7%90%86%E8%A7%A3%E5%92%8C%E5%88%86%E6%9E%90)
+  - [五、实验过程中最值得说起的几个方面](#%E4%BA%94%E5%AE%9E%E9%AA%8C%E8%BF%87%E7%A8%8B%E4%B8%AD%E6%9C%80%E5%80%BC%E5%BE%97%E8%AF%B4%E8%B5%B7%E7%9A%84%E5%87%A0%E4%B8%AA%E6%96%B9%E9%9D%A2)
 
 ## 一、实验要求
 
@@ -77,6 +82,8 @@ else if n 为奇数
 #### SORT-SELECT
 
 算法伪代码描述：
+
+> 注意：算法中的 k 都是以 0 开始的。
 
 ```c
 SORT-SELECT
@@ -582,13 +589,13 @@ Time used: 0.0010001659393310547seconds
 
 |分布类型|算法|A 的长度|结果|所用的时间|
 |-------|----|---|----------|-------|
-|均匀分布|SORT-SELECT|1000|min(A, 10) = 0.006654379877537031|0.0030896663665771484seconds|
+|均匀分布|SORT-SELECT (`numpy`)|1000|min(A, 10) = 0.006654379877537031|0.0030896663665771484seconds|
 |均匀分布|LINEAR-SELECT|1000|min(A, 10) = 0.006654379877537031|0.0seconds|
 |均匀分布|LAZY-SELECT|1000|min(A, 10) = 0.006654379877537031|0.0030896663665771484seconds|
-|正态分布|SORT-SELECT|1000|min(A, 10) = -2.140409828353999|0.0seconds|
+|正态分布|SORT-SELECT (`numpy`)|1000|min(A, 10) = -2.140409828353999|0.0seconds|
 |正态分布|LINEAR-SELECT|1000|min(A, 10) = -2.140409828353999|0.2992517948150635seconds|
 |正态分布|LAZY-SELECT|1000|min(A, 10) = -2.140409828353999|0.015314340591430664seconds|
-|Zipf 分布，$\zeta=1.01$|SORT-SELECT|1000|min(A, 10) = 1|0.0seconds|
+|Zipf 分布，$\zeta=1.01$|SORT-SELECT (`numpy`)|1000|min(A, 10) = 1|0.0seconds|
 |Zipf 分布，$\zeta=1.01$|LINEAR-SELECT|1000|min(A, 10) = 1|0.19576048851013184seconds|
 |Zipf 分布，$\zeta=1.01$|LAZY-SELECT|1000|min(A, 10) = 1|0.003997802734375seconds|
 
@@ -598,14 +605,69 @@ Time used: 0.0010001659393310547seconds
 
 |分布类型|算法|A 的长度|所用的时间|
 |-------|----|---|----------|
-|均匀分布|SORT-SELECT|10,000|0.0019943714141845703seconds|
+|均匀分布|SORT-SELECT (`numpy`)|10,000|0.0019943714141845703seconds|
 |均匀分布|LINEAR-SELECT|10,000|8.294952154159546seconds|
 |均匀分布|LAZY-SELECT|10,000|0.20388269424438477seconds|
-|正态分布|SORT-SELECT|10,000|0.0seconds|
+|正态分布|SORT-SELECT (`numpy`)|10,000|0.0seconds|
 |正态分布|LINEAR-SELECT|10,000|3.501344680786133seconds|
 |正态分布|LAZY-SELECT|10,000|0.03799915313720703seconds|
-|Zipf 分布，$\zeta=1.01$|SORT-SELECT|10,000|
+|Zipf 分布，$\zeta=1.01$|SORT-SELECT (`numpy`)|10,000|0.0009999275207519531seconds|
 |Zipf 分布，$\zeta=1.01$|LINEAR-SELECT|10,000|20.213204383850098seconds|
-|Zipf 分布，$\zeta=1.01$|LAZY-SELECT|10,000|0.0009999275207519531seconds|
+|Zipf 分布，$\zeta=1.01$|LAZY-SELECT|10,000|0.006994009017944336seconds|
 
 从测试来看，最快的还是 `SORT-SELECT`，`LAZY-SORT` 次之，`LINEAR-SORT` 最慢。理论上 `SORT-SELECT` 应该最慢才对。可能是 numpy 优化做的很不错。
+
+### 算法优化
+
+与其他同学的运行时间进行比较之后，发现主要有两个优化点：
+
+1. `LINEAR-SELECT` 算法在《算法导论》 9.2 中有更加高效的实现。
+2. 在算法需要得到某个元素的 `rank` 时，如果使用 `partition` 函数，需要的运行时间为 $\Theta(n)$，但是里面有 `swap` 操作。由于 `LAZY-SELECT` 算法中只需要得到 rank，并不需要真正地对元素进行划分，我们可以单独自己写一个循环，同时还可以在这个循环内面生成 P，从而节省了很多时间。
+<!-- 3. 后来在实际测试中又发现了一个小的优化空间：`logging.debug` 虽然只有在 `level` 设置为 -->
+
+#### LINEAR-SELECT 优化
+
+由于算法导论中为它取名为『RANDOMIZED-SELECT』，因此我这里也采用了这个名字。
+
+```c
+RANDOMIZED-SELECT
+输入：数组 A[0..n-1]，需要选取的下标 k
+输出：数组中第 k 小的元素
+算法：
+if n == 1
+    return A[0]
+q = RANDOMIZED-PARTITION(A)
+if q == k:
+    return A[q]
+elseif k < q:
+    return RANDOMIZED-SELECT(A[0:q-1], k)
+else return RANDOMIZED-SELECT(A[q+1:], k-q)
+```
+
+### 性能测试（优化之后）
+
+> 因为 Zipf 数据本身的特点，处理耗时较长，所以取样数较少。
+
+|分布类型|算法|A 的长度|所用的时间|
+|-------|----|---|----------|
+|均匀分布|SORT-SELECT (`numpy`)|1,000,000|0.24885845184326172seconds|
+|均匀分布|LINEAR-SELECT|1,000,000|3.949763059616089seconds|
+|均匀分布|LAZY-SELECT|1,000,000|4.454483985900879seconds|
+|正态分布|SORT-SELECT (`numpy`)|1,000,000|0.12593460083007812seconds|
+|正态分布|LINEAR-SELECT|1,000,000|0.5047116279602051seconds|
+|正态分布|LAZY-SELECT|1,000,000|2.378643274307251seconds|
+|Zipf 分布，$\zeta=1.01$|SORT-SELECT (`numpy`)|10,000|0.0010001659393310547seconds|
+|Zipf 分布，$\zeta=1.01$|LINEAR-SELECT|10,000|0.9494802951812744seconds|
+|Zipf 分布，$\zeta=1.01$|LAZY-SELECT|10,000|0.03298377990722656seconds|
+
+可以看到，在数据量比较小的时候（10,000 左右），`LAZY-SELECT` 比 `LINEAR-SELECT` 快很多，随着数据量的增加，其优势逐渐消失，甚至还会慢一些，这与算法运行次数增加有关。
+
+## 四、对实验结果的理解和分析
+
+1. `numpy` 自己实现的排序算法比较快，与自己实现的算法不具有可比性。
+2. `LAZY-SELECT` 算法具有优越性，但是也会有缺点，需要进一步改善，较少运行遍数，同时使之能够处理特殊的数据。
+
+## 五、实验过程中最值得说起的几个方面
+
+1. 老师之前提到过一个想法，对于不同的集合，我们采取不同的交集连接算法，以达到最优的性能。选择算法也是如此，对于不同分布的数据，我们应该选取最适合这种分布的算法进行选择。
+2. 性能优化，参见前文。

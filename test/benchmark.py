@@ -42,19 +42,19 @@ class TestPerformance(unittest.TestCase):
         # logging.warning('Testing uniform distribution')
         A = np.random.uniform(size=1000000)
         self.round_trip(A, 10, 'naive', logging.WARNING, 'uniform')
-        # self.round_trip(A, 10, 'linear', logging.WARNING, 'uniform')
+        self.round_trip(A, 10, 'linear', logging.WARNING, 'uniform')
         self.round_trip(A, 10, 'lazy', logging.WARNING, 'uniform')
     def test_normalize(self):
         # logging.warning('Testing normalize distribution')
         A = np.random.normal(size=1000000)
         self.round_trip(A, 10, 'naive', logging.WARNING, 'normalize')
-        # self.round_trip(A, 10, 'linear', logging.WARNING, 'normalize')
+        self.round_trip(A, 10, 'linear', logging.WARNING, 'normalize')
         self.round_trip(A, 10, 'lazy', logging.WARNING, 'normalize')
     def test_zeta(self):
         # logging.warning('Testing zeta distribution')
-        A = np.random.zipf(1.01, size=1000000)
+        A = np.random.zipf(1.0001, size=10000)
         self.round_trip(A, 10, 'naive', logging.WARNING, 'zeta')
-        # self.round_trip(A, 10, 'linear', logging.WARNING, 'zeta')
+        self.round_trip(A, 10, 'linear', logging.WARNING, 'zeta')
         self.round_trip(A, 10, 'lazy', logging.WARNING, 'zeta')
 
 if __name__ == "__main__":
